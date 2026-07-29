@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Knucklebones</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #d9c9a3;
+    --surface: #c9af80;
+    --board: #a9835a;
+    --board-edge: #8a6540;
+    --ink: #2b1d12;
+    --ink-soft: #5a4429;
+    --bone: #f3ead2;
+    --bone-edge: #cbb98d;
+    --brass: #8a5a24;
+    --brass-bright: #a9722f;
+    --seal-1: #7a2420;
+    --seal-1-soft: #b6635d;
+    --seal-2: #1f5c48;
+    --seal-2-soft: #4f8f7c;
+    --shadow: rgba(43, 29, 18, 0.28);
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #17110c;
+      --surface: #241a12;
+      --board: #3a2a1c;
+      --board-edge: #5a4028;
+      --ink: #ece0c6;
+      --ink-soft: #b7a887;
+      --bone: #e9dcb8;
+      --bone-edge: #4a3722;
+      --brass: #caa14f;
+      --brass-bright: #e0b968;
+      --seal-1: #c1544a;
+      --seal-1-soft: #8c3f38;
+      --seal-2: #4fa98a;
+      --seal-2-soft: #326e5b;
+      --shadow: rgba(0, 0, 0, 0.55);
+      color-scheme: dark;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #17110c;
+    --surface: #241a12;
+    --board: #3a2a1c;
+    --board-edge: #5a4028;
+    --ink: #ece0c6;
+    --ink-soft: #b7a887;
+    --bone: #e9dcb8;
+    --bone-edge: #4a3722;
+    --brass: #caa14f;
+    --brass-bright: #e0b968;
+    --seal-1: #c1544a;
+    --seal-1-soft: #8c3f38;
+    --seal-2: #4fa98a;
+    --seal-2-soft: #326e5b;
+    --shadow: rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+
+  :root[data-theme="light"] {
+    --bg: #d9c9a3;
+    --surface: #c9af80;
+    --board: #a9835a;
+    --board-edge: #8a6540;
+    --ink: #2b1d12;
+    --ink-soft: #5a4429;
+    --bone: #f3ead2;
+    --bone-edge: #cbb98d;
+    --brass: #8a5a24;
+    --brass-bright: #a9722f;
+    --seal-1: #7a2420;
+    --seal-1-soft: #b6635d;
+    --seal-2: #1f5c48;
+    --seal-2-soft: #4f8f7c;
+    --shadow: rgba(43, 29, 18, 0.28);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--brass) 14%, transparent), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    font-family: Cambria, "Iowan Old Style", Georgia, "Times New Roman", serif;
+    display: flex;
+    justify-content: center;
+    padding: clamp(1rem, 4vw, 3rem) 1rem;
+  }
+
+  .table {
+    width: 100%;
+    max-width: 62rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+  }
+
+  header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.9rem, 5vw, 2.7rem);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-wrap: balance;
+    color: var(--ink);
+    text-shadow: 0 1px 0 color-mix(in srgb, var(--bone) 60%, transparent);
+  }
+
+  .subtitle {
+    margin: 0;
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    max-width: 34rem;
+    margin-inline: auto;
+  }
+
+  .rules {
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    border: 1px solid var(--board-edge);
+    border-radius: 0.6rem;
+    padding: 0.7rem 1rem;
+    line-height: 1.5;
+  }
+  .rules strong { color: var(--ink); }
+
+  .control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--board-edge);
+    border-radius: 0.9rem;
+    padding: 0.9rem 1.2rem;
+    box-shadow: 0 6px 18px var(--shadow);
+  }
+
+  .turn-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .seal-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 15%, transparent);
+  }
+  .seal-dot.p1 { background: var(--seal-1); }
+  .seal-dot.p2 { background: var(--seal-2); }
+
+  #roll-btn {
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--bone);
+    background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+    border: 1px solid color-mix(in srgb, var(--ink) 25%, var(--brass));
+    border-radius: 0.55rem;
+    padding: 0.65rem 1.3rem;
+    cursor: pointer;
+    box-shadow: 0 3px 0 color-mix(in srgb, var(--ink) 30%, var(--brass)), 0 6px 14px var(--shadow);
+    transition: transform 0.08s ease;
+  }
+  #roll-btn:hover:not(:disabled) { transform: translateY(-1px); }
+  #roll-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 30%, var(--brass)); }
+  #roll-btn:disabled { opacity: 0.45; cursor: default; }
+  #roll-btn:focus-visible, .col:focus-visible, .reset-btn:focus-visible {
+    outline: 3px solid var(--brass-bright);
+    outline-offset: 2px;
+  }
+
+  .pending-die-slot { width: 2.6rem; height: 2.6rem; display: flex; align-items: center; justify-content: center; }
+
+  .die {
+    width: 2.4rem;
+    height: 2.4rem;
+    background: var(--bone);
+    border: 1px solid var(--bone-edge);
+    border-radius: 0.4rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    padding: 0.32rem;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent), 0 2px 4px var(--shadow);
+    flex: none;
+  }
+  .die.small { width: 1.9rem; height: 1.9rem; border-radius: 0.32rem; padding: 0.24rem; }
+  .die .pip { border-radius: 50%; margin: auto; width: 60%; height: 60%; background: transparent; }
+  .die .pip.on { background: var(--ink); }
+  .die.p1 .pip.on { background: var(--seal-1); }
+  .die.p2 .pip.on { background: var(--seal-2); }
+
+  @keyframes tumble {
+    0% { transform: rotate(0deg) scale(1); }
+    35% { transform: rotate(190deg) scale(1.15); }
+    70% { transform: rotate(330deg) scale(1.05); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+  .die.rolling { animation: tumble 0.5s ease-out; }
+  @media (prefers-reduced-motion: reduce) {
+    .die.rolling { animation: none; }
+  }
+
+  .boards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 40rem) {
+    .boards { grid-template-columns: 1fr; }
+  }
+
+  .board {
+    background: var(--surface);
+    border-radius: 1rem;
+    padding: 0.9rem;
+    border: 1px solid var(--board-edge);
+    box-shadow: 0 8px 22px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+  .board.active {
+    border-color: var(--brass-bright);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brass-bright) 55%, transparent), 0 8px 22px var(--shadow);
+  }
+
+  .board-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+  }
+  .board-name {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .board-score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.55rem;
+  }
+
+  .col {
+    background: var(--board);
+    border: 1px solid var(--board-edge);
+    border-radius: 0.6rem;
+    padding: 0.5rem 0.4rem;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.4rem;
+    min-height: 9.6rem;
+    cursor: default;
+    position: relative;
+  }
+  .col.clickable {
+    cursor: pointer;
+  }
+  .col.clickable:hover {
+    background: color-mix(in srgb, var(--board) 80%, var(--brass-bright));
+  }
+  .col.full-flash {
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .col.full-flash { animation: none; }
+  }
+
+  .col-slot {
+    height: 2.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .col-score {
+    text-align: center;
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .banner {
+    text-align: center;
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    min-height: 1.2rem;
+  }
+
+  .end-overlay {
+    position: fixed;
+    inset: 0;
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 10;
+  }
+  .end-overlay.show { display: flex; }
+
+  .end-card {
+    background: var(--bone);
+    color: var(--ink);
+    border-radius: 1rem;
+    padding: 1.8rem 2.2rem;
+    max-width: 24rem;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    border: 1px solid var(--bone-edge);
+  }
+  .end-card h2 {
+    margin: 0 0 0.4rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 1.4rem;
+  }
+  .end-scores {
+    font-family: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    justify-content: center;
+    gap: 1.6rem;
+    margin: 1rem 0 1.4rem;
+    font-size: 1.15rem;
+  }
+  .end-scores span.p1 { color: var(--seal-1); }
+  .end-scores span.p2 { color: var(--seal-2); }
+
+  .reset-btn {
+    font-family: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--bone);
+    background: linear-gradient(180deg, var(--brass-bright), var(--brass));
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="table">
+  <header>
+    <h1>Knucklebones</h1>
+    <p class="subtitle">A tavern wager of bone and brass — fill your columns, break your rival's matches.</p>
+  </header>
+
+  <p class="rules">
+    <strong>How it scores:</strong> each column scores the sum of its dice, but matching values in the <em>same column</em> multiply —
+    a pair counts double each (4 → 16), a triple counts triple each (5 → 45). Placing a die that matches your opponent's value in
+    that same column destroys all of theirs there. Game ends the moment either board fills.
+  </p>
+
+  <div class="control-bar">
+    <div class="turn-badge" id="turn-badge">
+      <span class="seal-dot p1"></span> Player 1's turn — roll the bone
+    </div>
+    <button id="roll-btn" type="button">Roll die</button>
+    <div class="pending-die-slot" id="pending-die-slot"></div>
+  </div>
+
+  <p class="banner" id="banner">&nbsp;</p>
+
+  <div class="boards">
+    <section class="board" id="board-1">
+      <div class="board-head">
+        <span class="board-name"><span class="seal-dot p1"></span>Player 1</span>
+        <span class="board-score" id="score-1">0</span>
+      </div>
+      <div class="columns" id="columns-1"></div>
+    </section>
+
+    <section class="board" id="board-2">
+      <div class="board-head">
+        <span class="board-name"><span class="seal-dot p2"></span>Player 2</span>
+        <span class="board-score" id="score-2">0</span>
+      </div>
+      <div class="columns" id="columns-2"></div>
+    </section>
+  </div>
+</div>
+
+<div class="end-overlay" id="end-overlay">
+  <div class="end-card">
+    <h2 id="end-title">Game Over</h2>
+    <div class="end-scores">
+      <span class="p1" id="end-score-1">P1: 0</span>
+      <span class="p2" id="end-score-2">P2: 0</span>
+    </div>
+    <button class="reset-btn" id="reset-btn" type="button">Play again</button>
+  </div>
+</div>
+
+<script>
+  const PIP_LAYOUTS = {
+    1: [4],
+    2: [0, 8],
+    3: [0, 4, 8],
+    4: [0, 2, 6, 8],
+    5: [0, 2, 4, 6, 8],
+    6: [0, 2, 3, 5, 6, 8],
+  };
+
+  function buildDie(value, ownerClass, extraClass) {
+    const die = document.createElement('div');
+    die.className = 'die' + (ownerClass ? ' ' + ownerClass : '') + (extraClass ? ' ' + extraClass : '');
+    const active = new Set(PIP_LAYOUTS[value] || []);
+    for (let i = 0; i < 9; i++) {
+      const pip = document.createElement('div');
+      pip.className = 'pip' + (active.has(i) ? ' on' : '');
+      die.appendChild(pip);
+    }
+    return die;
+  }
+
+  const state = {
+    boards: { 1: [[], [], []], 2: [[], [], []] },
+    currentPlayer: 1,
+    pendingRoll: null,
+    gameOver: false,
+  };
+
+  const els = {
+    turnBadge: document.getElementById('turn-badge'),
+    rollBtn: document.getElementById('roll-btn'),
+    pendingSlot: document.getElementById('pending-die-slot'),
+    banner: document.getElementById('banner'),
+    columns: { 1: document.getElementById('columns-1'), 2: document.getElementById('columns-2') },
+    boardEl: { 1: document.getElementById('board-1'), 2: document.getElementById('board-2') },
+    score: { 1: document.getElementById('score-1'), 2: document.getElementById('score-2') },
+    endOverlay: document.getElementById('end-overlay'),
+    endTitle: document.getElementById('end-title'),
+    endScore: { 1: document.getElementById('end-score-1'), 2: document.getElementById('end-score-2') },
+    resetBtn: document.getElementById('reset-btn'),
+  };
+
+  function scoreBoard(board) {
+    return board.reduce((total, col) => {
+      const counts = {};
+      for (const v of col) counts[v] = (counts[v] || 0) + 1;
+      let colTotal = 0;
+      for (const v in counts) {
+        const c = counts[v];
+        colTotal += Number(v) * c * c;
+      }
+      return total + colTotal;
+    }, 0);
+  }
+
+  function scoreColumn(col) {
+    const counts = {};
+    for (const v of col) counts[v] = (counts[v] || 0) + 1;
+    let total = 0;
+    for (const v in counts) total += Number(v) * counts[v] * counts[v];
+    return total;
+  }
+
+  function boardFull(board) {
+    return board.every((col) => col.length >= 3);
+  }
+
+  function render() {
+    for (const p of [1, 2]) {
+      const board = state.boards[p];
+      const ownerClass = p === 1 ? 'p1' : 'p2';
+      const container = els.columns[p];
+      container.innerHTML = '';
+
+      const isActiveTurn = !state.gameOver && state.currentPlayer === p && state.pendingRoll !== null;
+
+      board.forEach((col, colIndex) => {
+        const colEl = document.createElement('div');
+        colEl.className = 'col';
+        const full = col.length >= 3;
+        if (isActiveTurn && !full) {
+          colEl.classList.add('clickable');
+          colEl.tabIndex = 0;
+          colEl.setAttribute('role', 'button');
+          colEl.setAttribute('aria-label', `Place die in column ${colIndex + 1}`);
+        }
+        for (let slot = 0; slot < 3; slot++) {
+          const slotEl = document.createElement('div');
+          slotEl.className = 'col-slot';
+          const value = col[slot];
+          if (value !== undefined) {
+            slotEl.appendChild(buildDie(value, ownerClass, 'small'));
+          }
+          colEl.appendChild(slotEl);
+        }
+        const colScore = document.createElement('div');
+        colScore.className = 'col-score';
+        colScore.textContent = col.length ? scoreColumn(col) : '·';
+        colEl.appendChild(colScore);
+
+        const handlePlace = () => placeDie(p, colIndex);
+        colEl.addEventListener('click', () => {
+          if (isActiveTurn && !full) handlePlace();
+          else if (isActiveTurn && full) flashFull(colEl);
+        });
+        colEl.addEventListener('keydown', (e) => {
+          if ((e.key === 'Enter' || e.key === ' ') && isActiveTurn && !full) {
+            e.preventDefault();
+            handlePlace();
+          }
+        });
+
+        container.appendChild(colEl);
+      });
+
+      els.boardEl[p].classList.toggle('active', !state.gameOver && state.currentPlayer === p);
+      els.score[p].textContent = scoreBoard(board);
+    }
+
+    els.turnBadge.innerHTML = `<span class="seal-dot p${state.currentPlayer}"></span> Player ${state.currentPlayer}'s turn` +
+      (state.pendingRoll ? ' — choose a column' : ' — roll the bone');
+
+    els.pendingSlot.innerHTML = '';
+    if (state.pendingRoll !== null) {
+      els.pendingSlot.appendChild(buildDie(state.pendingRoll, `p${state.currentPlayer}`, 'rolling'));
+    }
+
+    els.rollBtn.disabled = state.gameOver || state.pendingRoll !== null;
+  }
+
+  function flashFull(colEl) {
+    els.banner.textContent = 'That column is full — choose another one.';
+    colEl.classList.remove('full-flash');
+    void colEl.offsetWidth;
+    colEl.classList.add('full-flash');
+  }
+
+  function rollDie() {
+    if (state.gameOver || state.pendingRoll !== null) return;
+    state.pendingRoll = 1 + Math.floor(Math.random() * 6);
+    els.banner.textContent = `Rolled a ${state.pendingRoll} — pick a column on your own board.`;
+    render();
+  }
+
+  function placeDie(player, colIndex) {
+    const board = state.boards[player];
+    const opponent = state.boards[player === 1 ? 2 : 1];
+    const value = state.pendingRoll;
+
+    board[colIndex].push(value);
+    const before = opponent[colIndex].length;
+    opponent[colIndex] = opponent[colIndex].filter((v) => v !== value);
+    const removed = before - opponent[colIndex].length;
+
+    state.pendingRoll = null;
+    els.banner.textContent = removed > 0
+      ? `Player ${player} placed a ${value} and cleared ${removed} matching di${removed > 1 ? 'ce' : 'e'} from the rival column!`
+      : `Player ${player} placed a ${value}.`;
+
+    if (boardFull(state.boards[1]) || boardFull(state.boards[2])) {
+      endGame();
+      return;
+    }
+
+    state.currentPlayer = state.currentPlayer === 1 ? 2 : 1;
+    render();
+  }
+
+  function endGame() {
+    state.gameOver = true;
+    render();
+    const s1 = scoreBoard(state.boards[1]);
+    const s2 = scoreBoard(state.boards[2]);
+    els.endScore[1].textContent = `P1: ${s1}`;
+    els.endScore[2].textContent = `P2: ${s2}`;
+    els.endTitle.textContent = s1 === s2 ? "It's a tie!" : (s1 > s2 ? 'Player 1 wins!' : 'Player 2 wins!');
+    els.endOverlay.classList.add('show');
+  }
+
+  function resetGame() {
+    state.boards = { 1: [[], [], []], 2: [[], [], []] };
+    state.currentPlayer = 1;
+    state.pendingRoll = null;
+    state.gameOver = false;
+    els.endOverlay.classList.remove('show');
+    els.banner.textContent = ' ';
+    render();
+  }
+
+  els.rollBtn.addEventListener('click', rollDie);
+  els.resetBtn.addEventListener('click', resetGame);
+
+  render();
+</script>
+</body>
+</html>
